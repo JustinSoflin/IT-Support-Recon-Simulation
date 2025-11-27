@@ -1,6 +1,4 @@
-# Threat-Hunt
-
-## Threat Hunting Lab: “IT Support” Recon Simulation
+# Threat Hunting Lab: “IT Support” Recon Simulation
 Scenario
 
 A routine support request should have ended with a reset and reassurance. Instead, the so-called “help” left behind a trail of anomalies that don’t add up.
@@ -40,6 +38,15 @@ DeviceFileEvents
 | project TimeGenerated, ActionType, DeviceName, FileName, FolderPath, InitiatingProcessCommandLine, InitiatingProcessFolderPath, SHA256
 | order by TimeGenerated desc
 ```
+<kbd>
+<img width="1600" height="266" alt="image" src="https://github.com/user-attachments/assets/c3f42ce6-c560-4635-9821-02b77b58d4ab" />
+</kbd>
+   
+<kbd>
+<img width="1176" height="370" alt="image" src="https://github.com/user-attachments/assets/8a94ba72-f499-4b41-941b-b75f903a23f0" />
+</kbd>
+
+---
 
 Flag Walkthrough
 ### Flag 1 – Initial Execution Detection
@@ -63,6 +70,9 @@ DeviceProcessEvents
 | where TimeGenerated between (filelaunch -5m .. filelaunch + 5m)
 | order by TimeGenerated desc
 ```
+<kbd>
+<img width="1294" height="424" alt="image" src="https://github.com/user-attachments/assets/8993ee49-ee47-435d-b560-89fff8755430" />
+</kbd>
 
 Analysis:
 -ExecutionPolicy Bypass allows PowerShell to execute scripts without signature enforcement, commonly leveraged in attacks to run malicious .ps1 files.
@@ -87,6 +97,9 @@ DeviceFileEvents
 | project TimeGenerated, ActionType, DeviceName, FileName, FolderPath, InitiatingProcessCommandLine, InitiatingProcessFolderPath, SHA256
 | order by TimeGenerated desc
 ```
+<kbd>
+<img width="1336" height="370" alt="image" src="https://github.com/user-attachments/assets/d934db1c-fbcc-46b5-87d2-ba30ce997600" />
+</kbd>
 
 Analysis:
 The artifact represents intent to indicate defense tampering; actual configuration changes may not have occurred.
@@ -112,6 +125,9 @@ DeviceFileEvents
    or InitiatingProcessCommandLine contains "clip" 
 | order by TimeGenerated desc
 ```
+<kbd>
+<img width="1443" height="331" alt="image" src="https://github.com/user-attachments/assets/81a8e587-03de-4180-aee6-57ca267584d2" />
+</kbd>
 
 Analysis:
 Actors probe clipboards for passwords, tokens, or keys. Extremely short-lived reconnaissance.
@@ -137,6 +153,9 @@ DeviceProcessEvents
 | project TimeGenerated, ActionType, DeviceName, FileName, FolderPath, InitiatingProcessCommandLine, ProcessCommandLine
 | order by TimeGenerated desc
 ```
+<kbd>
+<img width="853" height="340" alt="image" src="https://github.com/user-attachments/assets/f9b2f8d3-a8d1-4d04-b919-a565c9c8b10d" />
+</kbd>
 
 Analysis:
 qwinsta.exe enumerates logged-in users and session info; standard recon technique.
@@ -162,6 +181,9 @@ DeviceProcessEvents
 | project TimeGenerated, DeviceName, FileName, FolderPath, InitiatingProcessCommandLine, ProcessCommandLine
 | order by TimeGenerated desc
 ```
+<kbd>
+<img width="971" height="271" alt="image" src="https://github.com/user-attachments/assets/42b518c1-3c6b-4c99-b3b7-f89abeb18866" />
+</kbd>
 
 Analysis:
 Enumeration identifies data locations for later collection.
@@ -188,6 +210,10 @@ DeviceProcessEvents
 | order by TimeGenerated asc
 ```
 
+<kbd>
+<img width="1015" height="293" alt="image" src="https://github.com/user-attachments/assets/7b54a8ba-c195-4b72-9b56-33ce6ea9aad6" />
+</kbd>
+
 Analysis:
 RuntimeBroker initiated cmd.exe /c query session to check interactive sessions — reconnaissance.
 
@@ -211,6 +237,10 @@ DeviceProcessEvents
 | order by TimeGenerated asc
 ```
 
+<kbd>
+<img width="1309" height="547" alt="image" src="https://github.com/user-attachments/assets/af8d5b17-c6a5-4d7f-958d-eaccba5a585a" />
+</kbd>
+
 Analysis:
 Child processes share the same MDE UniqueId, allowing correlation even with different PIDs.
 
@@ -232,6 +262,10 @@ DeviceProcessEvents
 | project TimeGenerated, FileName, ProcessCommandLine, InitiatingProcessCommandLine
 | order by TimeGenerated desc
 ```
+
+<kbd>
+<img width="702" height="186" alt="image" src="https://github.com/user-attachments/assets/87a06be4-a270-4fb0-8312-6ac54abaf526" />
+</kbd>
 
 Analysis:
 tasklist.exe enumerates all running processes — standard recon.
@@ -255,6 +289,10 @@ DeviceProcessEvents
 | order by TimeGenerated desc
 ```
 
+<kbd>
+<img width="1468" height="562" alt="image" src="https://github.com/user-attachments/assets/00ffbc98-93e4-46c4-8acf-debfa735ae83" />
+</kbd>
+
 Analysis:
 Privilege and group membership enumeration guides attack strategy.
 
@@ -276,6 +314,10 @@ DeviceFileEvents
 | project TimeGenerated, ActionType, DeviceName, FileName
 ```
 
+<kbd>
+<img width="645" height="190" alt="image" src="https://github.com/user-attachments/assets/37a83a24-f754-4cd2-9207-8262b3599edf" />
+</kbd>
+
 ```kql
 let T1 = datetime(2025-10-09T12:58:00);
 DeviceNetworkEvents
@@ -286,6 +328,10 @@ DeviceNetworkEvents
 | order by TimeGenerated asc
 | project TimeGenerated, InitiatingProcessFileName, RemoteIP, RemoteUrl, RemotePort, InitiatingProcessCommandLine
 ```
+
+<kbd>
+<img width="706" height="280" alt="image" src="https://github.com/user-attachments/assets/a501cc0e-111b-4739-8a12-b10c515907e5" />
+</kbd>
 
 Analysis:
 The first contact with an external URL validates outbound connectivity; the files created afterward served as proof-of-access.
@@ -308,6 +354,10 @@ DeviceFileEvents
 | project TimeGenerated, DeviceName, FileName, FolderPath, ActionType
 ```
 
+<kbd>
+<img width="652" height="235" alt="image" src="https://github.com/user-attachments/assets/3707b9c7-abeb-495c-a38a-ed03a7c6aeba" />
+</kbd>
+
 Analysis:
 Artifacts consolidated into a ZIP for potential exfiltration.
 
@@ -328,6 +378,10 @@ DeviceProcessEvents
 | project TimeGenerated, ActionType, FileName, FolderPath, ProcessCommandLine
 ```
 
+<kbd>
+<img width="1600" height="118" alt="image" src="https://github.com/user-attachments/assets/d731234c-d49d-44d3-8c4f-712c425c90f8" />
+</kbd>
+
 ```kql
 let T1 = datetime(2025-10-09T13:00:00);
 DeviceNetworkEvents
@@ -337,6 +391,10 @@ DeviceNetworkEvents
 | order by TimeGenerated asc
 | project TimeGenerated, ActionType, InitiatingProcessCommandLine, InitiatingProcessIntegrityLevel, LocalIP, LocalPort, Protocol, RemoteIP, RemoteIPType, RemotePort, RemoteUrl, ReportId
 ```
+
+<kbd>
+<img width="700" height="507" alt="image" src="https://github.com/user-attachments/assets/5920bb03-d5be-465f-87d4-b8fdebbaab0d" />
+</kbd>
 
 Analysis:
 Outbound HTTPS to httpbin.org via PowerShell demonstrates simulated exfiltration attempt.
@@ -355,6 +413,10 @@ DeviceProcessEvents
 | where ProcessCommandLine contains "supporttool"
 ```
 
+<kbd>
+<img width="1600" height="282" alt="image" src="https://github.com/user-attachments/assets/d9cf7cc1-0e5d-4e62-a5fd-50dd0e99f4f3" />
+</kbd>
+
 Analysis:
 Scheduled task ensures tooling runs on user logon.
 
@@ -372,6 +434,10 @@ DeviceRegistryEvents
 | where TimeGenerated between (T1 .. T1 + 1d)
 | where ActionType contains "RegistryValueSet" or ActionType contains "RegistryValueModified"
 ```
+
+<kbd>
+<img width="1423" height="856" alt="image" src="https://github.com/user-attachments/assets/2eb76260-2592-4806-b656-6d6cf58c31c2" />
+</kbd>
 
 Analysis:
 Fallback autorun entry increases persistence resilience.
@@ -393,26 +459,30 @@ DeviceFileEvents
 | order by TimeGenerated desc
 ```
 
+<kbd>
+<img width="1600" height="170" alt="image" src="https://github.com/user-attachments/assets/a8fc6831-bf4f-4317-9eb6-af3853a4469a" />
+</kbd>
+
 ---
 
 Analysis:
 A user-facing file mimicking a helpdesk chat to justify suspicious activity.
 
-Timeline & Analyst Reasoning
-Step	Objective	Analyst Note
-0 → 1	Initial Execution	SupportTool.ps1 appears in Downloads; executed with bypass flag.
-1 → 2	Defense Disabling	Evidence of tamper artifacts; intent observed.
-2 → 3	Quick Data Probe	Clipboard checked for sensitive info.
-3 → 4	Host Recon	User/session enumeration via qwinsta.
-4 → 5	Storage Mapping	Drives enumerated (wmic logicaldisk).
-5 → 6	Connectivity Check	Network/DNS verified.
-6 → 7	Interactive Session	Active sessions discovered.
-7 → 8	Runtime Inventory	tasklist.exe snapshot taken.
-8 → 9	Privilege Check	whoami /groups and /priv run.
-9 → 10	Proof-of-Access	Files + first outbound test (www.msftconnecttest.com).
-10 → 11	Bundling	ReconArtifacts.zip created for exfil.
-11 → 12	Outbound Test	HTTPS upload to httpbin.org.
-12 → 13	Scheduled Task	SupportToolUpdater ensures re-execution.
-13 → 14	Autorun Fallback	RemoteAssistUpdater registry entry.
-14 → 15	Narrative	SupportChat_log.lnk as planted justification.
+Timeline & Analyst Reasoning <br>
+Step	Objective	Analyst Note <br>
+0 → 1	Initial Execution	SupportTool.ps1 appears in Downloads; executed with bypass flag. <br>
+1 → 2	Defense Disabling	Evidence of tamper artifacts; intent observed. <br>
+2 → 3	Quick Data Probe	Clipboard checked for sensitive info. <br>
+3 → 4	Host Recon	User/session enumeration via qwinsta. <br>
+4 → 5	Storage Mapping	Drives enumerated (wmic logicaldisk). <br>
+5 → 6	Connectivity Check	Network/DNS verified. <br>
+6 → 7	Interactive Session	Active sessions discovered. <br>
+7 → 8	Runtime Inventory	tasklist.exe snapshot taken. <br>
+8 → 9	Privilege Check	whoami /groups and /priv run. <br>
+9 → 10	Proof-of-Access	Files + first outbound test (www.msftconnecttest.com). <br>
+10 → 11	Bundling	ReconArtifacts.zip created for exfil. <br>
+11 → 12	Outbound Test	HTTPS upload to httpbin.org. <br>
+12 → 13	Scheduled Task	SupportToolUpdater ensures re-execution. <br>
+13 → 14	Autorun Fallback	RemoteAssistUpdater registry entry. <br>
+14 → 15	Narrative	SupportChat_log.lnk as planted justification. <br>
 
