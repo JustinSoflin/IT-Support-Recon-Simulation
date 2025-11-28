@@ -1,5 +1,11 @@
 # Threat Hunting Lab: “IT Support” Recon Simulation
 
+## Scenario
+
+What appeared to be a routine support request was actually system recon: probing, collecting information, and leaving persistence mechanisms behind. Then, right as the activity became suspicious, a conveniently placed “explanation” file appeared. This wasn’t support work — it was misdirection.
+
+---
+
 ## Executive Summary
 
 What looked like routine IT support on the intern workstation gab-intern-vm was actually a series of suspicious activities. Instead of simply helping, the session involved probing the system, collecting information, testing network access, and setting up ways to maintain access.
@@ -10,35 +16,15 @@ The activity was deliberate and coordinated, not standard support. This report l
 
 ---
 
-## Scenario
-
-What appeared to be a routine support request was actually system recon: probing, collecting information, and leaving persistence mechanisms behind. Then, right as the activity became suspicious, a conveniently placed “explanation” file appeared. This wasn’t support work — it was misdirection.
-
-Suspicious VM: `gab-intern-vm`
-
----
-
-## Starting Point
-
-Intel:
-
-Multiple machines were spawning processes from _Downloads_ folders during earily October.
-
-Shared file traits: similar executables, naming patterns, and keywords (desk, help, support, tool).
-
-Intern-operated machines were affected.
-
----
-
 ## 📅 Timeline of Events
 
 | **Flag** | **Timestamp** | **Stage** | **Event / Artifact** |
 |----------|---------------------|-----------|-----------------------|
 | **Flag 1** | 12:22:27 | Initial Execution | `SupportTool.ps1` executed from Downloads with `-ExecutionPolicy Bypass` |
 | **Flag 2** | 12:34:59 | Defense Deception | staged security changes file created → `DefenderTamperArtifact.lnk` |
-| **Flag 3** | 12:50 | Data Probe | Clipboard accessed via Powershell `Get-Clipboard` |
+| **Flag 3** | 12:50 | Data Probe | Clipboard accessed via Powershell → `Get-Clipboard` |
 | **Flag 4** | 12:51:44 | Session Recon | `qwinsta` executed to enumerate sessions |
-| **Flag 5** | 12:51:18 | Storage Mapping | storage assessment `wmic logicaldisk get name,freespace,size` |
+| **Flag 5** | 12:51:18 | Storage Mapping | storage assessment → `wmic logicaldisk get name,freespace,size` |
 | **Flag 6** | 12:51:44 | Presence Check | `cmd.exe /c query session` triggered from `RuntimeBroker.exe` |
 | **Flag 7** | 12:50-12:52 | Interactive Session | Repeated session queries (same InitiatingProcessUniqueId) |
 | **Flag 8** | 12:51:57 | Runtime Inventory | `tasklist.exe` executed |
@@ -51,6 +37,13 @@ Intern-operated machines were affected.
 | **Flag 15** | 13:02:41 | Misdirection | Narrative artifact created → `SupportChat_log.lnk` |
 
 ---
+
+## Starting Point
+
+- **Intel:**
+  - Multiple machines were spawning processes from _Downloads_ folders during earily October.
+  - Shared file traits: similar executables, naming patterns, and keywords (_desk, help, support, tool_).
+  - Intern-operated machines were affected.
 
 Initial KQL Query – Suspicious Files in Downloads:
 
@@ -75,7 +68,8 @@ DeviceFileEvents
 
 ---
 
-Flag Walkthrough
+# Flag Walkthrough
+
 ### Flag 1 – Initial Execution Detection
 
 Objective: Detect the earliest anomalous execution representing an entry point.
@@ -96,6 +90,11 @@ DeviceProcessEvents
 <kbd>
 <img width="1294" height="424" alt="image" src="https://github.com/user-attachments/assets/8993ee49-ee47-435d-b560-89fff8755430" />
 </kbd>
+
+| |
+|---|
+| <img src="https://github.com/user-attachments/assets/8993ee49-ee47-435d-b560-89fff8755430" width="100%"> |
+
 
 Analysis:
 -ExecutionPolicy Bypass allows PowerShell to execute scripts without signature enforcement, commonly leveraged in attacks to run malicious .ps1 files.
