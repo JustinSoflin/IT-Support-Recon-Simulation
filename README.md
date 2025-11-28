@@ -87,7 +87,7 @@ DeviceProcessEvents
 | order by TimeGenerated desc
 ```
 <kbd>
-<img width="1294" height="424" alt="image" src="https://github.com/user-attachments/assets/8993ee49-ee47-435d-b560-89fff8755430" />
+<img width="1294" alt="image" src="https://github.com/user-attachments/assets/8993ee49-ee47-435d-b560-89fff8755430" />
 </kbd>
 
 | |
