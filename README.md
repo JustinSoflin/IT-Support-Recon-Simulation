@@ -58,13 +58,14 @@ DeviceFileEvents
 | project TimeGenerated, ActionType, DeviceName, FileName, FolderPath, InitiatingProcessCommandLine, InitiatingProcessFolderPath, SHA256
 | order by TimeGenerated desc
 ```
-<kbd>
-<img width="1600" height="266" alt="image" src="https://github.com/user-attachments/assets/c3f42ce6-c560-4635-9821-02b77b58d4ab" />
-</kbd>
-   
-<kbd>
-<img width="1176" height="370" alt="image" src="https://github.com/user-attachments/assets/8a94ba72-f499-4b41-941b-b75f903a23f0" />
-</kbd>
+
+| |
+|---|
+| <img src="https://github.com/user-attachments/assets/c3f42ce6-c560-4635-9821-02b77b58d4ab" width="100%"> |
+
+| |
+|---|
+| <img src="https://github.com/user-attachments/assets/8a94ba72-f499-4b41-941b-b75f903a23f0" width="100%"> |
 
 ---
 
@@ -73,8 +74,6 @@ DeviceFileEvents
 ### Flag 1 – Initial Execution Detection
 
 Objective: Detect the earliest anomalous execution representing an entry point.
-
-Answer: -ExecutionPolicy
 
 Query:
 
@@ -99,13 +98,13 @@ DeviceProcessEvents
 Analysis:
 -ExecutionPolicy Bypass allows PowerShell to execute scripts without signature enforcement, commonly leveraged in attacks to run malicious .ps1 files.
 
+Answer: -ExecutionPolicy
+
 ---
 
 ### Flag 2 – Defense Disabling
 
 Objective: Identify simulated or staged security posture changes.
-
-Answer: DefenderTamperArtifact.lnk
 
 Query:
 ```kql
@@ -124,13 +123,13 @@ DeviceFileEvents
 Analysis:
 The artifact represents intent to indicate defense tampering; actual configuration changes may not have occurred.
 
+Answer: DefenderTamperArtifact.lnk
+
 ---
 
 ### Flag 3 – Quick Data Probe
 
 Objective: Spot opportunistic checks for sensitive content.
-
-Answer: "powershell.exe" -NoProfile -Sta -Command "try { Get-Clipboard | Out-Null } catch { }"
 
 Query:
 ```kql
@@ -150,13 +149,13 @@ DeviceFileEvents
 Analysis:
 Actors probe clipboards hoping to find sensitive information, such as passwords. Extremely short-lived reconnaissance.
 
+Answer: "powershell.exe" -NoProfile -Sta -Command "try { Get-Clipboard | Out-Null } catch { }"
+
 ---
 
 ### Flag 4 – Host Context Recon
 
 Objective: Collect host and user context for planning follow-up actions.
-
-Answer (Last Recon Attempt Timestamp): 2025-10-09T12:51:44.3425653Z
 
 Query:
 ```kql
@@ -176,13 +175,13 @@ DeviceProcessEvents
 Analysis:
 qwinsta.exe enumerates logged-in users and session info; standard recon technique.
 
+Answer (Last Recon Attempt Timestamp): 2025-10-09T12:51:44.3425653Z
+
 ---
 
 ### Flag 5 – Storage Surface Mapping
 
 Objective: Detect enumeration of local/network storage.
-
-Answer: "cmd.exe" /c wmic logicaldisk get name,freespace,size
 
 Query:
 ```kql
@@ -202,13 +201,13 @@ DeviceProcessEvents
 Analysis:
 Enumeration identifies data locations for later collection.
 
+Answer: "cmd.exe" /c wmic logicaldisk get name,freespace,size
+
 ---
 
 ### Flag 6 – Connectivity & Name Resolution Check
 
 Objective: Identify network reachability and DNS queries.
-
-Answer: RuntimeBroker.exe
 
 Query:
 ```kql
@@ -229,13 +228,13 @@ DeviceProcessEvents
 Analysis:
 RuntimeBroker initiated cmd.exe /c query session to check interactive sessions — reconnaissance.
 
+Answer: RuntimeBroker.exe
+
 ---
 
 ### Flag 7 – Interactive Session Discovery
 
 Objective: Detect enumeration of active user sessions.
-
-Answer (Unique ID of Initiating Process): 2533274790397065
 
 Query:
 ```kql
@@ -256,13 +255,13 @@ DeviceProcessEvents
 Analysis:
 Child processes share the same MDE UniqueId, allowing correlation even with different PIDs.
 
+Answer (Unique ID of Initiating Process): 2533274790397065
+
 ---
 
 ### Flag 8 – Runtime Application Inventory
 
 Objective: Identify activity that enumerates running processes or services on the host.
-
-Answer (Process FileName): tasklist.exe
 
 Query:
 ```kql
@@ -284,13 +283,13 @@ DeviceProcessEvents
 Analysis:
 tasklist.exe enumerates all running processes — standard recon.
 
+Answer (Process FileName): tasklist.exe
+
 ---
 
 ### Flag 9 – Privilege Surface Check
 
 Objective: Identify attempts to enumerate the current user’s privilege level, group membership, and available security tokens.
-
-Answer (Timestamp of first attempt): 2025-10-09T12:52:14.3135459Z
 
 Query:
 ```kql
@@ -312,13 +311,13 @@ DeviceProcessEvents
 Analysis:
 Privilege and group membership enumeration guides attack strategy.
 
+Answer (Timestamp of first attempt): 2025-10-09T12:52:14.3135459Z
+
 ---
 
 ### Flag 10 – Proof-of-Access & Egress Validation
 
 Objective:Identify network activity that demonstrates both the ability to reach external destinations and the intent to validate outbound communication pathways.
-
-Answer (First Outbound Destination): www.msftconnecttest.com
 
 Queries:
 ```kql
@@ -354,12 +353,13 @@ DeviceNetworkEvents
 Analysis:
 The first contact with an external URL validates outbound connectivity; the files created afterward served as proof-of-access.
 
+Answer (First Outbound Destination): www.msftconnecttest.com
+
 ---
 
 ### Flag 11 – Bundling / Staging Artifacts
 
 Objective: Identify actions that consolidate reconnaissance outputs or collected artifacts into a single location or compressed package.
-Answer (File Path): C:\Users\Public\ReconArtifacts.zip
 
 Query:
 ```kql
@@ -380,13 +380,13 @@ DeviceFileEvents
 Analysis:
 Artifacts consolidated into a ZIP for potential exfiltration.
 
+Answer (File Path): C:\Users\Public\ReconArtifacts.zip
+
 ---
 
 ### Flag 12 – Outbound Transfer Attempt (Simulated)
 
 Objective: Identify any network activity indicating an attempt to move staged data off the host.
-
-Answer (IP of last unusual outbound connection): 100.29.147.161
 
 Queries:
 ```kql
@@ -420,13 +420,13 @@ DeviceNetworkEvents
 Analysis:
 Outbound HTTPS to httpbin.org via PowerShell demonstrates simulated exfiltration attempt.
 
+Answer (IP of last unusual outbound connection): 100.29.147.161
+
 ---
 
 ### Flag 13 – Scheduled Re-Execution Persistence
 
 Objective: Identify mechanisms that ensure the attacker’s tooling will automatically run again after a reboot or user sign-in.
-
-Answer (Task Name): SupportToolUpdater
 
 Query:
 ```kql
@@ -443,13 +443,13 @@ DeviceProcessEvents
 Analysis:
 Scheduled task ensures tooling runs on user logon.
 
+Answer (Task Name): SupportToolUpdater
+
 ---
 
 ### Flag 14 – Autorun Fallback Persistence
 
 Objective: Identify lightweight persistence mechanisms created under the user context, specifically autorun entries in the registry or startup directory.
-
-Answer (Registry Value Name): RemoteAssistUpdater
 
 Query:
 ```kql
@@ -467,13 +467,13 @@ DeviceRegistryEvents
 Analysis:
 Fallback autorun entry increases persistence resilience.
 
+Answer (Registry Value Name): RemoteAssistUpdater
+
 ---
 
 ### Flag 15 – Planted Narrative / Cover Artifact
 
 Objective: Identify any artifacts deliberately created to justify, disguise, or mislead investigators regarding the nature of the suspicious activity. 
-
-Answer (Artifact File Name): SupportChat_log.lnk
 
 Query:
 ```kql
@@ -490,7 +490,7 @@ DeviceFileEvents
 <img width="1600" height="170" alt="image" src="https://github.com/user-attachments/assets/a8fc6831-bf4f-4317-9eb6-af3853a4469a" />
 </kbd>
 
----
-
 Analysis:
 A user-facing file mimicking a helpdesk chat to justify suspicious activity.
+
+Answer (Artifact File Name): SupportChat_log.lnk
