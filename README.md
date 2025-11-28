@@ -1,27 +1,54 @@
 # Threat Hunting Lab: “IT Support” Recon Simulation
-Scenario
 
-A routine support request should have ended with a reset and reassurance. Instead, the so-called “help” left behind a trail of anomalies that don’t add up.
+## Executive Summary
 
-What was framed as troubleshooting looked more like an audit of the system itself — probing, cataloging, leaving subtle traces in its wake. Actions chained together in suspicious sequence: first gaining a foothold, then expanding reach, then preparing to linger long after the session ended.
+What looked like routine IT support on the intern workstation gab-intern-vm was actually a series of suspicious activities. Instead of simply helping, the session involved probing the system, collecting information, testing network access, and setting up ways to maintain access.
 
-And just when the activity should have raised questions, a neat explanation appeared — a story planted in plain sight, designed to justify the very behavior that demanded scrutiny.
+At each step, actions were structured and sequential: initial script execution, host and session checks, storage and privilege review, outbound connectivity testing, and consolidation of files. Finally, a staged “chat log” was placed to create a false explanation for the behavior.
 
-This wasn’t remote assistance. It was a misdirection. Your mission: reconstruct the timeline, connect the scattered remnants of this “support session,” and decide what was legitimate versus staged.
+The activity was deliberate and coordinated, not standard support. This report lays out the timeline, the artifacts left behind, and the key indicators that distinguish legitimate support from staged reconnaissance.
 
-Suspicious VM: gab-intern-vm
+---
 
-Starting Point
+## Scenario
 
-Before diving into flags, hunting started here:
+What appeared to be a routine support request was actually system recon: probing, collecting information, and leaving persistence mechanisms behind. Then, right as the activity became suspicious, a conveniently placed “explanation” file appeared. This wasn’t support work — it was misdirection.
+
+Suspicious VM: `gab-intern-vm`
+
+---
+
+## Starting Point
 
 Intel:
 
-Multiple machines were spawning processes from Downloads folders during early October.
+Multiple machines were spawning processes from _Downloads_ folders during earily October.
 
-Shared file traits: similar executables, naming patterns, keywords (desk, help, support, tool).
+Shared file traits: similar executables, naming patterns, and keywords (desk, help, support, tool).
 
 Intern-operated machines were affected.
+
+---
+
+## 📅 Timeline of Events
+
+| **Flag** | **Timestamp** | **Stage** | **Event / Artifact** |
+|----------|---------------------|-----------|-----------------------|
+| **Flag 1** | 12:22:27 | Initial Execution | `SupportTool.ps1` executed from Downloads with `-ExecutionPolicy Bypass` |
+| **Flag 2** | 12:34:59 | Defense Deception | staged security changes file created → `DefenderTamperArtifact.lnk` |
+| **Flag 3** | 12:50 | Data Probe | Clipboard accessed via Powershell `Get-Clipboard` |
+| **Flag 4** | 12:51:44 | Session Recon | `qwinsta` executed to enumerate sessions |
+| **Flag 5** | 12:51:18 | Storage Mapping | storage assessment `wmic logicaldisk get name,freespace,size` |
+| **Flag 6** | 12:51:44 | Presence Check | `cmd.exe /c query session` triggered from `RuntimeBroker.exe` |
+| **Flag 7** | 12:50-12:52 | Interactive Session | Repeated session queries (same InitiatingProcessUniqueId) |
+| **Flag 8** | 12:51:57 | Runtime Inventory | `tasklist.exe` executed |
+| **Flag 9** | 12:52-12:54 | Privilege Recon | `whoami /groups` and `/priv` |
+| **Flag 10** | 12:58:16 | Egress Check | First outbound request → `www.msftconnecttest.com` |
+| **Flag 11** | 12:58:17 | Staging | `ReconArtifacts.zip` created in `C:\Users\Public\` |
+| **Flag 12** | 13:00:40 | Exfil Attempt | outbound HTTPS to `httpbin.org` 100.29.147.161 |
+| **Flag 13** | 13:01 | Persistence | Scheduled task `SupportToolUpdater` created |
+| **Flag 14** | 13:02 | Fallback Persistence | Autorun registry value `RemoteAssistUpdater` added |
+| **Flag 15** | 13:02:41 | Misdirection | Narrative artifact created → `SupportChat_log.lnk` |
 
 ---
 
@@ -53,21 +80,17 @@ Flag Walkthrough
 
 Objective: Detect the earliest anomalous execution representing an entry point.
 
-What to Hunt: Atypical scripts or commands outside normal user behavior.
-
-Hint: Downloads; Two.
-
 Answer: -ExecutionPolicy
 
 Query:
 
 ```kql
-let filelaunch = todatetime('2025-10-09T12:22:27.6514901Z');
+let T1 = todatetime('2025-10-09T12:22:00');
 DeviceProcessEvents
 | where DeviceName == "gab-intern-vm"
 | where ProcessCommandLine contains ".ps1"
 | project TimeGenerated, DeviceName, FileName, FolderPath, InitiatingProcessCommandLine, InitiatingProcessFileName, InitiatingProcessFolderPath, InitiatingProcessParentFileName, ProcessCommandLine
-| where TimeGenerated between (filelaunch -5m .. filelaunch + 5m)
+| where TimeGenerated between (T1 -5m .. T1 + 5m)
 | order by TimeGenerated desc
 ```
 <kbd>
@@ -82,8 +105,6 @@ Analysis:
 ### Flag 2 – Defense Disabling
 
 Objective: Identify simulated or staged security posture changes.
-
-Hint: File was manually accessed.
 
 Answer: DefenderTamperArtifact.lnk
 
@@ -110,8 +131,6 @@ The artifact represents intent to indicate defense tampering; actual configurati
 
 Objective: Spot opportunistic checks for sensitive content.
 
-Hint: Clipboard check.
-
 Answer: "powershell.exe" -NoProfile -Sta -Command "try { Get-Clipboard | Out-Null } catch { }"
 
 Query:
@@ -130,15 +149,13 @@ DeviceFileEvents
 </kbd>
 
 Analysis:
-Actors probe clipboards for passwords, tokens, or keys. Extremely short-lived reconnaissance.
+Actors probe clipboards hoping to find sensitive information, such as passwords. Extremely short-lived reconnaissance.
 
 ---
 
 ### Flag 4 – Host Context Recon
 
 Objective: Collect host and user context for planning follow-up actions.
-
-Hint: qw (qwinsta)
 
 Answer (Last Recon Attempt Timestamp): 2025-10-09T12:51:44.3425653Z
 
@@ -166,8 +183,6 @@ qwinsta.exe enumerates logged-in users and session info; standard recon techniqu
 
 Objective: Detect enumeration of local/network storage.
 
-Hint: Storage assessment.
-
 Answer: "cmd.exe" /c wmic logicaldisk get name,freespace,size
 
 Query:
@@ -193,8 +208,6 @@ Enumeration identifies data locations for later collection.
 ### Flag 6 – Connectivity & Name Resolution Check
 
 Objective: Identify network reachability and DNS queries.
-
-Hint: Session query.
 
 Answer: RuntimeBroker.exe
 
@@ -248,6 +261,8 @@ Child processes share the same MDE UniqueId, allowing correlation even with diff
 
 ### Flag 8 – Runtime Application Inventory
 
+Objective: Identify activity that enumerates running processes or services on the host.
+
 Answer (Process FileName): tasklist.exe
 
 Query:
@@ -274,6 +289,8 @@ tasklist.exe enumerates all running processes — standard recon.
 
 ### Flag 9 – Privilege Surface Check
 
+Objective: Identify attempts to enumerate the current user’s privilege level, group membership, and available security tokens.
+
 Answer (Timestamp of first attempt): 2025-10-09T12:52:14.3135459Z
 
 Query:
@@ -299,6 +316,8 @@ Privilege and group membership enumeration guides attack strategy.
 ---
 
 ### Flag 10 – Proof-of-Access & Egress Validation
+
+Objective:Identify network activity that demonstrates both the ability to reach external destinations and the intent to validate outbound communication pathways.
 
 Answer (First Outbound Destination): www.msftconnecttest.com
 
@@ -340,6 +359,7 @@ The first contact with an external URL validates outbound connectivity; the file
 
 ### Flag 11 – Bundling / Staging Artifacts
 
+Objective: Identify actions that consolidate reconnaissance outputs or collected artifacts into a single location or compressed package.
 Answer (File Path): C:\Users\Public\ReconArtifacts.zip
 
 Query:
@@ -364,6 +384,8 @@ Artifacts consolidated into a ZIP for potential exfiltration.
 ---
 
 ### Flag 12 – Outbound Transfer Attempt (Simulated)
+
+Objective: Identify any network activity indicating an attempt to move staged data off the host.
 
 Answer (IP of last unusual outbound connection): 100.29.147.161
 
@@ -403,6 +425,8 @@ Outbound HTTPS to httpbin.org via PowerShell demonstrates simulated exfiltration
 
 ### Flag 13 – Scheduled Re-Execution Persistence
 
+Objective: Identify mechanisms that ensure the attacker’s tooling will automatically run again after a reboot or user sign-in.
+
 Answer (Task Name): SupportToolUpdater
 
 Query:
@@ -423,6 +447,8 @@ Scheduled task ensures tooling runs on user logon.
 ---
 
 ### Flag 14 – Autorun Fallback Persistence
+
+Objective: Identify lightweight persistence mechanisms created under the user context, specifically autorun entries in the registry or startup directory.
 
 Answer (Registry Value Name): RemoteAssistUpdater
 
@@ -446,6 +472,8 @@ Fallback autorun entry increases persistence resilience.
 
 ### Flag 15 – Planted Narrative / Cover Artifact
 
+Objective: Identify any artifacts deliberately created to justify, disguise, or mislead investigators regarding the nature of the suspicious activity. 
+
 Answer (Artifact File Name): SupportChat_log.lnk
 
 Query:
@@ -467,22 +495,3 @@ DeviceFileEvents
 
 Analysis:
 A user-facing file mimicking a helpdesk chat to justify suspicious activity.
-
-Timeline & Analyst Reasoning <br>
-Step	Objective	Analyst Note <br>
-0 → 1	Initial Execution	SupportTool.ps1 appears in Downloads; executed with bypass flag. <br>
-1 → 2	Defense Disabling	Evidence of tamper artifacts; intent observed. <br>
-2 → 3	Quick Data Probe	Clipboard checked for sensitive info. <br>
-3 → 4	Host Recon	User/session enumeration via qwinsta. <br>
-4 → 5	Storage Mapping	Drives enumerated (wmic logicaldisk). <br>
-5 → 6	Connectivity Check	Network/DNS verified. <br>
-6 → 7	Interactive Session	Active sessions discovered. <br>
-7 → 8	Runtime Inventory	tasklist.exe snapshot taken. <br>
-8 → 9	Privilege Check	whoami /groups and /priv run. <br>
-9 → 10	Proof-of-Access	Files + first outbound test (www.msftconnecttest.com). <br>
-10 → 11	Bundling	ReconArtifacts.zip created for exfil. <br>
-11 → 12	Outbound Test	HTTPS upload to httpbin.org. <br>
-12 → 13	Scheduled Task	SupportToolUpdater ensures re-execution. <br>
-13 → 14	Autorun Fallback	RemoteAssistUpdater registry entry. <br>
-14 → 15	Narrative	SupportChat_log.lnk as planted justification. <br>
-
