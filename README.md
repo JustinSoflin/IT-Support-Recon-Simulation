@@ -40,7 +40,7 @@ The activity was deliberate and coordinated, not standard support. This report l
 
 ## Starting Point
 
-- **Intel:**
+- **INTEL:**
   - Multiple machines were spawning processes from _Downloads_ folders during earily October.
   - Shared file traits: similar executables, naming patterns, and keywords (_desk, help, support, tool_).
   - Intern-operated machines were affected.
@@ -58,10 +58,6 @@ DeviceFileEvents
 | project TimeGenerated, ActionType, DeviceName, FileName, FolderPath, InitiatingProcessCommandLine, InitiatingProcessFolderPath, SHA256
 | order by TimeGenerated desc
 ```
-
-| |
-|---|
-| <img src="https://github.com/user-attachments/assets/c3f42ce6-c560-4635-9821-02b77b58d4ab" width="100%"> |
 
 | |
 |---|
