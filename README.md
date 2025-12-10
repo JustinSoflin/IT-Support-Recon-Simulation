@@ -82,7 +82,8 @@ DeviceFileEvents
 
 ### Flag 1 – Initial Execution Detection
 
-Objective: Detect the earliest anomalous execution representing an entry point.
+**Objective** 
+Detect the earliest anomalous execution representing an entry point.
 
 Query:
 
@@ -116,7 +117,8 @@ DeviceProcessEvents
 
 ### Flag 2 – Defense Disabling
 
-Objective: Identify simulated or staged security posture changes.
+**Objective** 
+Identify simulated or staged security posture changes.
 
 Query:
 ```kql
@@ -147,7 +149,8 @@ DeviceFileEvents
 
 ### Flag 3 – Quick Data Probe
 
-Objective: Spot opportunistic checks for sensitive content.
+**Objective**
+Spot opportunistic checks for sensitive content.
 
 Query:
 ```kql
@@ -164,16 +167,23 @@ DeviceFileEvents
 <img width="1443" height="331" alt="image" src="https://github.com/user-attachments/assets/81a8e587-03de-4180-aee6-57ca267584d2" />
 </kbd>
 
-Analysis:
-Actors probe clipboards hoping to find sensitive information, such as passwords. Extremely short-lived reconnaissance.
+**Findings**
+- User executed PowerShell command with `Get-Clipboard`
 
-Answer: "powershell.exe" -NoProfile -Sta -Command "try { Get-Clipboard | Out-Null } catch { }"
+**Analysis**
+- Malicious actors probe clipboards hoping to find sensitive information, such as passwords. 
+- Extremely short-lived reconnaissance
+- Clipboard enumeration is uncommon in legitimate support activity
+- Additional commands, such as `try { … } catch { }`, are also present to suppress errors and discard outputs, reducing detection opportunities.
+
+**Flag Answer**: "powershell.exe" -NoProfile -Sta -Command "try { Get-Clipboard | Out-Null } catch { }"
 
 ---
 
 ### Flag 4 – Host Context Recon
 
-Objective: Collect host and user context for planning follow-up actions.
+**Objective**
+Find activity that gathers basic host and user context to inform follow-up actions.
 
 Query:
 ```kql
@@ -190,10 +200,20 @@ DeviceProcessEvents
 <img width="853" height="340" alt="image" src="https://github.com/user-attachments/assets/f9b2f8d3-a8d1-4d04-b919-a565c9c8b10d" />
 </kbd>
 
-Analysis:
-qwinsta.exe enumerates logged-in users and session info; standard recon technique.
+**Findings**
+-
 
-Answer (Last Recon Attempt Timestamp): 2025-10-09T12:51:44.3425653Z
+**Analysis**
+- qwinsta.exe enumerates logged-in users and session info; standard recon technique.
+- qwinsta is a Windows command-line tool that lists active user sessions on a machine or remote server.
+
+Shows session IDs, usernames, session states (active, disconnected), and types (console, RDP).
+
+Often used in reconnaissance to see who is logged in and which sessions are active.
+
+In attacks, it helps an actor determine if a user is present or plan lateral movement.
+
+**Flag Answer (Last Recon Attempt Timestamp)**: 2025-10-09T12:51:44.3425653Z
 
 ---
 
