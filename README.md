@@ -4,7 +4,7 @@
 
 What appeared to be a routine support request was actually system recon: probing, collecting information, and leaving persistence mechanisms behind. Then, right as the activity became suspicious, a conveniently placed “explanation” file appeared. This wasn’t support work — it was misdirection.
 
-**INTEL:**
+**INTEL**
   - Multiple machines were spawning processes from `Downloads` folders during early October.
   - Shared file traits: similar executables, naming patterns, and keywords _desk, help, support, tool_.
   - Intern-operated machines were affected.
@@ -45,7 +45,7 @@ The activity was deliberate and coordinated, not standard support. This report l
 
 ## Starting Point
 
-**Objective**
+**Objective** <br>
 Identify where to start hunting with the above intel given.
 
 Query:
@@ -66,6 +66,8 @@ DeviceFileEvents
 |---|
 | <img src="https://github.com/user-attachments/assets/8a94ba72-f499-4b41-941b-b75f903a23f0" width="100%"> |
 
+<br>
+
 **Findings**
 - `.ps1` file executed from the `Downloads` folder
 - filename `supporttool` is inline with keywords from intel
@@ -82,7 +84,7 @@ DeviceFileEvents
 
 ### Flag 1 – Initial Execution Detection
 
-**Objective** 
+**Objective** <br>
 Detect the earliest anomalous execution representing an entry point.
 
 Query:
@@ -104,6 +106,8 @@ DeviceProcessEvents
 |---|
 | <img src="https://github.com/user-attachments/assets/8993ee49-ee47-435d-b560-89fff8755430" width="100%"> |
 
+<br>
+
 **Findings**
 - The `supporttool.ps1` file was run with the `-ExecutionPolicy` parameter
 
@@ -117,7 +121,7 @@ DeviceProcessEvents
 
 ### Flag 2 – Defense Disabling
 
-**Objective** 
+**Objective** <br>
 Identify simulated or staged security posture changes.
 
 Query:
@@ -134,6 +138,8 @@ DeviceFileEvents
 <img width="1336" height="370" alt="image" src="https://github.com/user-attachments/assets/d934db1c-fbcc-46b5-87d2-ba30ce997600" />
 </kbd>
 
+<br>
+
 **Findings**
 - User created a shortcut to file `DefenderTamperArtifact.lnk`
 - initiatingprocess is `Explorer.exe`, signifying file was **manually accessed**
@@ -149,7 +155,7 @@ DeviceFileEvents
 
 ### Flag 3 – Quick Data Probe
 
-**Objective**
+**Objective** <br>
 Spot opportunistic checks for sensitive content.
 
 Query:
@@ -167,6 +173,8 @@ DeviceFileEvents
 <img width="1443" height="331" alt="image" src="https://github.com/user-attachments/assets/81a8e587-03de-4180-aee6-57ca267584d2" />
 </kbd>
 
+<br>
+
 **Findings**
 - User executed PowerShell command with `Get-Clipboard`
 
@@ -182,7 +190,7 @@ DeviceFileEvents
 
 ### Flag 4 – Host Context Recon
 
-**Objective**
+**Objective** <br>
 Find activity that gathers basic host and user context to inform follow-up actions.
 
 Query:
@@ -198,7 +206,7 @@ DeviceProcessEvents
 ```
 <kbd>
 <img width="853" height="340" alt="image" src="https://github.com/user-attachments/assets/f9b2f8d3-a8d1-4d04-b919-a565c9c8b10d" />
-</kbd>
+</kbd> <br>
 
 **Findings**
 -
@@ -219,7 +227,8 @@ In attacks, it helps an actor determine if a user is present or plan lateral mov
 
 ### Flag 5 – Storage Surface Mapping
 
-Objective: Detect enumeration of local/network storage.
+**Objective** <br>
+Detect enumeration of local/network storage.
 
 Query:
 ```kql
@@ -236,16 +245,22 @@ DeviceProcessEvents
 <img width="971" height="271" alt="image" src="https://github.com/user-attachments/assets/42b518c1-3c6b-4c99-b3b7-f89abeb18866" />
 </kbd>
 
-Analysis:
-Enumeration identifies data locations for later collection.
+<br>
 
-Answer: "cmd.exe" /c wmic logicaldisk get name,freespace,size
+**Findings**
+
+
+**Analysis**
+- Enumeration identifies data locations for later collection.
+
+**Flag Answer**: "cmd.exe" /c wmic logicaldisk get name,freespace,size
 
 ---
 
 ### Flag 6 – Connectivity & Name Resolution Check
 
-Objective: Identify network reachability and DNS queries.
+**Objective** <br>
+Identify network reachability and DNS queries.
 
 Query:
 ```kql
@@ -263,16 +278,22 @@ DeviceProcessEvents
 <img width="1015" height="293" alt="image" src="https://github.com/user-attachments/assets/7b54a8ba-c195-4b72-9b56-33ce6ea9aad6" />
 </kbd>
 
-Analysis:
-RuntimeBroker initiated cmd.exe /c query session to check interactive sessions — reconnaissance.
+<br>
 
-Answer: RuntimeBroker.exe
+**Findings**
+
+
+**Analysis**
+- RuntimeBroker initiated cmd.exe /c query session to check interactive sessions — reconnaissance.
+
+**Flag Answer**: RuntimeBroker.exe
 
 ---
 
 ### Flag 7 – Interactive Session Discovery
 
-Objective: Detect enumeration of active user sessions.
+**Objective** <br>
+Detect enumeration of active user sessions.
 
 Query:
 ```kql
@@ -290,16 +311,22 @@ DeviceProcessEvents
 <img width="1309" height="547" alt="image" src="https://github.com/user-attachments/assets/af8d5b17-c6a5-4d7f-958d-eaccba5a585a" />
 </kbd>
 
-Analysis:
-Child processes share the same MDE UniqueId, allowing correlation even with different PIDs.
+<br>
 
-Answer (Unique ID of Initiating Process): 2533274790397065
+**Findings**
+
+
+**Analysis**
+- Child processes share the same MDE UniqueId, allowing correlation even with different PIDs.
+
+**Flag Answer (Unique ID of Initiating Process)**: 2533274790397065
 
 ---
 
 ### Flag 8 – Runtime Application Inventory
 
-Objective: Identify activity that enumerates running processes or services on the host.
+**Objective** <br>
+Identify activity that enumerates running processes or services on the host.
 
 Query:
 ```kql
@@ -318,16 +345,22 @@ DeviceProcessEvents
 <img width="702" height="186" alt="image" src="https://github.com/user-attachments/assets/87a06be4-a270-4fb0-8312-6ac54abaf526" />
 </kbd>
 
-Analysis:
-tasklist.exe enumerates all running processes — standard recon.
+<br>
 
-Answer (Process FileName): tasklist.exe
+**Findings**
+
+
+**Analysis**
+- tasklist.exe enumerates all running processes — standard recon.
+
+**Flag Answer (Process FileName)**: tasklist.exe
 
 ---
 
 ### Flag 9 – Privilege Surface Check
 
-Objective: Identify attempts to enumerate the current user’s privilege level, group membership, and available security tokens.
+**Objective** <br>
+Identify attempts to enumerate the current user’s privilege level, group membership, and available security tokens.
 
 Query:
 ```kql
@@ -346,16 +379,22 @@ DeviceProcessEvents
 <img width="1468" height="562" alt="image" src="https://github.com/user-attachments/assets/00ffbc98-93e4-46c4-8acf-debfa735ae83" />
 </kbd>
 
-Analysis:
-Privilege and group membership enumeration guides attack strategy.
+<br>
 
-Answer (Timestamp of first attempt): 2025-10-09T12:52:14.3135459Z
+**Findings**
+
+
+**Analysis**
+- Privilege and group membership enumeration guides attack strategy.
+
+**Flag Answer (Timestamp of first attempt)**: 2025-10-09T12:52:14.3135459Z
 
 ---
 
 ### Flag 10 – Proof-of-Access & Egress Validation
 
-Objective:Identify network activity that demonstrates both the ability to reach external destinations and the intent to validate outbound communication pathways.
+**Objective** <br>
+Identify network activity that demonstrates both the ability to reach external destinations and the intent to validate outbound communication pathways.
 
 Queries:
 ```kql
@@ -388,16 +427,22 @@ DeviceNetworkEvents
 <img width="706" height="280" alt="image" src="https://github.com/user-attachments/assets/a501cc0e-111b-4739-8a12-b10c515907e5" />
 </kbd>
 
-Analysis:
-The first contact with an external URL validates outbound connectivity; the files created afterward served as proof-of-access.
+<br>
 
-Answer (First Outbound Destination): www.msftconnecttest.com
+**Findings**
+
+
+**Analysis**
+- The first contact with an external URL validates outbound connectivity; the files created afterward served as proof-of-access.
+
+**Flag Answer (First Outbound Destination)**: www.msftconnecttest.com
 
 ---
 
 ### Flag 11 – Bundling / Staging Artifacts
 
-Objective: Identify actions that consolidate reconnaissance outputs or collected artifacts into a single location or compressed package.
+**Objective** <br>
+Identify actions that consolidate reconnaissance outputs or collected artifacts into a single location or compressed package.
 
 Query:
 ```kql
@@ -415,16 +460,22 @@ DeviceFileEvents
 <img width="652" height="235" alt="image" src="https://github.com/user-attachments/assets/3707b9c7-abeb-495c-a38a-ed03a7c6aeba" />
 </kbd>
 
-Analysis:
-Artifacts consolidated into a ZIP for potential exfiltration.
+<br>
 
-Answer (File Path): C:\Users\Public\ReconArtifacts.zip
+**Findings**
+
+
+**Analysis**
+- Artifacts consolidated into a ZIP for potential exfiltration.
+
+**Flag Answer (File Path)**: C:\Users\Public\ReconArtifacts.zip
 
 ---
 
 ### Flag 12 – Outbound Transfer Attempt (Simulated)
 
-Objective: Identify any network activity indicating an attempt to move staged data off the host.
+**Objective** <br>
+Identify any network activity indicating an attempt to move staged data off the host.
 
 Queries:
 ```kql
@@ -455,16 +506,22 @@ DeviceNetworkEvents
 <img width="700" height="507" alt="image" src="https://github.com/user-attachments/assets/5920bb03-d5be-465f-87d4-b8fdebbaab0d" />
 </kbd>
 
-Analysis:
-Outbound HTTPS to httpbin.org via PowerShell demonstrates simulated exfiltration attempt.
+<br>
 
-Answer (IP of last unusual outbound connection): 100.29.147.161
+**Findings**
+
+
+**Analysis**
+- Outbound HTTPS to httpbin.org via PowerShell demonstrates simulated exfiltration attempt.
+
+**Flag Answer (IP of last unusual outbound connection)**: 100.29.147.161
 
 ---
 
 ### Flag 13 – Scheduled Re-Execution Persistence
 
-Objective: Identify mechanisms that ensure the attacker’s tooling will automatically run again after a reboot or user sign-in.
+**Objective** <br>
+Identify mechanisms that ensure the attacker’s tooling will automatically run again after a reboot or user sign-in.
 
 Query:
 ```kql
@@ -478,16 +535,22 @@ DeviceProcessEvents
 <img width="1600" height="282" alt="image" src="https://github.com/user-attachments/assets/d9cf7cc1-0e5d-4e62-a5fd-50dd0e99f4f3" />
 </kbd>
 
-Analysis:
-Scheduled task ensures tooling runs on user logon.
+<br>
 
-Answer (Task Name): SupportToolUpdater
+**Findings**
+-
+
+**Analysis**
+- Scheduled task ensures tooling runs on user logon.
+
+** Flag Answer (Task Name)**: SupportToolUpdater
 
 ---
 
 ### Flag 14 – Autorun Fallback Persistence
 
-Objective: Identify lightweight persistence mechanisms created under the user context, specifically autorun entries in the registry or startup directory.
+**Objective** <br>
+Identify lightweight persistence mechanisms created under the user context, specifically autorun entries in the registry or startup directory.
 
 Query:
 ```kql
@@ -502,16 +565,22 @@ DeviceRegistryEvents
 <img width="1423" height="856" alt="image" src="https://github.com/user-attachments/assets/2eb76260-2592-4806-b656-6d6cf58c31c2" />
 </kbd>
 
-Analysis:
-Fallback autorun entry increases persistence resilience.
+<br>
 
-Answer (Registry Value Name): RemoteAssistUpdater
+**Findings**
+-
+
+**Analysis**
+- Fallback autorun entry increases persistence resilience.
+
+**Flag Answer (Registry Value Name)**: RemoteAssistUpdater
 
 ---
 
 ### Flag 15 – Planted Narrative / Cover Artifact
 
-Objective: Identify any artifacts deliberately created to justify, disguise, or mislead investigators regarding the nature of the suspicious activity. 
+**Objective** <br>
+Identify any artifacts deliberately created to justify, disguise, or mislead investigators regarding the nature of the suspicious activity. 
 
 Query:
 ```kql
@@ -528,7 +597,16 @@ DeviceFileEvents
 <img width="1600" height="170" alt="image" src="https://github.com/user-attachments/assets/a8fc6831-bf4f-4317-9eb6-af3853a4469a" />
 </kbd>
 
-Analysis:
-A user-facing file mimicking a helpdesk chat to justify suspicious activity.
+<br>
 
-Answer (Artifact File Name): SupportChat_log.lnk
+**Findings**
+-
+
+**Analysis**
+- A user-facing file mimicking a helpdesk chat to justify suspicious activity.
+
+**Flag Answer (Artifact File Name)**: SupportChat_log.lnk
+
+## MITRE ATT&CK MAPINGS
+
+## Response
