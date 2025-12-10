@@ -4,6 +4,11 @@
 
 What appeared to be a routine support request was actually system recon: probing, collecting information, and leaving persistence mechanisms behind. Then, right as the activity became suspicious, a conveniently placed “explanation” file appeared. This wasn’t support work — it was misdirection.
 
+**INTEL:**
+  - Multiple machines were spawning processes from `Downloads` folders during early October.
+  - Shared file traits: similar executables, naming patterns, and keywords _desk, help, support, tool_.
+  - Intern-operated machines were affected.
+
 ---
 
 ## Executive Summary
@@ -40,12 +45,10 @@ The activity was deliberate and coordinated, not standard support. This report l
 
 ## Starting Point
 
-- **INTEL:**
-  - Multiple machines were spawning processes from _Downloads_ folders during earily October.
-  - Shared file traits: similar executables, naming patterns, and keywords (_desk, help, support, tool_).
-  - Intern-operated machines were affected.
+**Objective**
+Identify where to start hunting with the above intel given.
 
-Initial KQL Query – Suspicious Files in Downloads:
+Query:
 
 ```kql
 DeviceFileEvents
@@ -62,6 +65,16 @@ DeviceFileEvents
 | |
 |---|
 | <img src="https://github.com/user-attachments/assets/8a94ba72-f499-4b41-941b-b75f903a23f0" width="100%"> |
+
+**Findings**
+- `.ps1` file executed from the `Downloads` folder
+- filename `supporttool` is inline with keywords from intel
+- October 9th date is within investigation window
+
+**Analysis**
+- Downloads is not a trusted folder as files here are unvetted.
+- Threat actors often execute from Downloads since it requires no special permissions
+- Script was given a Support-themed title
 
 ---
 
@@ -90,11 +103,14 @@ DeviceProcessEvents
 |---|
 | <img src="https://github.com/user-attachments/assets/8993ee49-ee47-435d-b560-89fff8755430" width="100%"> |
 
+**Findings**
+- The `supporttool.ps1` file was run with the `-ExecutionPolicy` parameter
 
-Analysis:
--ExecutionPolicy Bypass allows PowerShell to execute scripts without signature enforcement, commonly leveraged in attacks to run malicious .ps1 files.
+**Analysis**
+- `-ExecutionPolicy` Bypass allows PowerShell to execute scripts without restrictions, warnings, or prompts
+- Commonly leveraged in attacks to run malicious .ps1 files
 
-Answer: -ExecutionPolicy
+**Flag Answer**: -ExecutionPolicy
 
 ---
 
@@ -116,10 +132,16 @@ DeviceFileEvents
 <img width="1336" height="370" alt="image" src="https://github.com/user-attachments/assets/d934db1c-fbcc-46b5-87d2-ba30ce997600" />
 </kbd>
 
-Analysis:
-The artifact represents intent to indicate defense tampering; actual configuration changes may not have occurred.
+**Findings**
+- User created a shortcut to file `DefenderTamperArtifact.lnk`
+- initiatingprocess is `Explorer.exe`, signifying file was **manually accessed**
 
-Answer: DefenderTamperArtifact.lnk
+**Analysis**
+- The artifact only represents intent to indicate defense tampering
+- Actual configuration changes may not have occurred
+- The naming convention is overly descriptive, suggesting it's likely created to draw attention rather than perform a real function
+
+**Flag Answer**: DefenderTamperArtifact.lnk
 
 ---
 
