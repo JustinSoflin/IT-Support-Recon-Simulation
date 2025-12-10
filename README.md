@@ -5,7 +5,7 @@
 What appeared to be a routine support request was actually system recon: probing, collecting information, and leaving persistence mechanisms behind. Then, right as the activity became suspicious, a conveniently placed “explanation” file appeared. This wasn’t support work — it was misdirection.
 
 **INTEL**
-  - Multiple machines were spawning processes from `Downloads` folders during early October.
+  - Multiple machines were spawning processes from `Downloads` folders during _early October_.
   - Shared file traits: similar executables, naming patterns, and keywords _desk, help, support, tool_.
   - Intern-operated machines were affected.
 
@@ -209,17 +209,16 @@ DeviceProcessEvents
 </kbd> <br>
 
 **Findings**
--
+- User executed the `qwinsta` command
 
-**Analysis**
-- qwinsta.exe enumerates logged-in users and session info; standard recon technique.
-- qwinsta is a Windows command-line tool that lists active user sessions on a machine or remote server.
-
-Shows session IDs, usernames, session states (active, disconnected), and types (console, RDP).
-
-Often used in reconnaissance to see who is logged in and which sessions are active.
-
-In attacks, it helps an actor determine if a user is present or plan lateral movement.
+**Analysis** 
+- `qwinsta` is a Windows command-line tool that shows:
+   - session IDs
+   - usernames
+   - session states (active, disconnected)
+   - types (console, RDP)
+- Often used in reconnaissance to see who is logged in and which sessions are active.
+- In attacks, it helps an actor determine if a user is present or plan lateral movement.
 
 **Flag Answer (Last Recon Attempt Timestamp)**: 2025-10-09T12:51:44.3425653Z
 
@@ -248,10 +247,17 @@ DeviceProcessEvents
 <br>
 
 **Findings**
-
+- User executed a `WMIC` command
 
 **Analysis**
-- Enumeration identifies data locations for later collection.
+- `wmic logicaldisk get name,freespace,size` → list all drives and show:
+   - Drive letter (C:, D:, etc.)
+   - Free space
+   - Total size
+- Why attackers use it
+   -  Shows what storage exists on the machine
+   - Where large data volumes might be
+   - Which drives are worth scanning or exfiltrating
 
 **Flag Answer**: "cmd.exe" /c wmic logicaldisk get name,freespace,size
 
@@ -281,10 +287,16 @@ DeviceProcessEvents
 <br>
 
 **Findings**
-
+- User executed the `query session` command
 
 **Analysis**
-- RuntimeBroker initiated cmd.exe /c query session to check interactive sessions — reconnaissance.
+- `query session` is a Windows command that lists all Terminal Services / Remote Desktop sessions on the machine. It shows:
+   - Username
+   - Session name
+   - Session ID
+   - State (Active / Disconnected)
+   - Idle time
+   - Logon time
 
 **Flag Answer**: RuntimeBroker.exe
 
@@ -314,10 +326,10 @@ DeviceProcessEvents
 <br>
 
 **Findings**
-
+- User executed several session enumeration commands, such as `quser`, `net use`, `ipconfig`, and `whoami`
 
 **Analysis**
-- Child processes share the same MDE UniqueId, allowing correlation even with different PIDs.
+- Child processes share the same _InitiatingProcessUniqueId_, allowing correlation even with different PIDs
 
 **Flag Answer (Unique ID of Initiating Process)**: 2533274790397065
 
@@ -348,12 +360,19 @@ DeviceProcessEvents
 <br>
 
 **Findings**
-
+- User ran `tasklist /v` command
 
 **Analysis**
-- tasklist.exe enumerates all running processes — standard recon.
+- tasklist enumerates all running processes, essentially TaskManager in text view
+- `/v` switch, or _verbose_ output, includes additional details to the tasklist command
+- Attackers may be looking to:
+   - Identify security tools running
+   - Spot analysis tools or admin activity
+   - Find high‑value processes to target
+   - See which user accounts own which processes
+- Low noise, low risk, high information
 
-**Flag Answer (Process FileName)**: tasklist.exe
+**Flag Answer (Process FileName)**: tasklist.exe 
 
 ---
 
@@ -382,10 +401,13 @@ DeviceProcessEvents
 <br>
 
 **Findings**
-
+- User ran `whoami` command with `/groups` switch
 
 **Analysis**
-- Privilege and group membership enumeration guides attack strategy.
+- `whoami /groups` is a Windows command that lists all the groups the current user belongs to
+- Shows access scope and privileges. Being part of certain groups (like Administrators or Domain Admins) gives elevated rights
+- Malicious actors use it to see what permissions they already have and plan what they can do next
+- Final flag for session enumeration
 
 **Flag Answer (Timestamp of first attempt)**: 2025-10-09T12:52:14.3135459Z
 
