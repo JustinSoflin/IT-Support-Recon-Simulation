@@ -2,13 +2,13 @@
 
 ### **Report Information**
 **Performed By** Justin Soflin  
-**Role:** Threat Hunter / Security Analyst  
-**Date Completed:** Nov. 29, 2025  
-**Environment Investigated:** Cyber Range at LOG(N)Pacific  
-**Host Investigated:** gab-intern-vm 
-**User Context:** g4bri3lintern 
-**Tools & Data Sources:** Microsoft Azure, Log Analytics workspaces, KQL (Kusto Query Language)
-**Scope:** Behavioral review, artifact analysis, persistence detection, and network egress validation  
+**Role:** Threat Hunter / Security Analyst  <br>
+**Date Completed:** Nov. 29, 2025  <br>
+**Environment Investigated:** Cyber Range at LOG(N)Pacific  <br>
+**Host Investigated:** gab-intern-vm <br>
+**User Context:** g4bri3lintern <br>
+**Tools & Data Sources:** Microsoft Azure, Log Analytics workspaces, KQL (Kusto Query Language)<br>
+**Scope:** Behavioral review, artifact analysis, persistence detection, and network egress validation  <br>
 
 ---
 
