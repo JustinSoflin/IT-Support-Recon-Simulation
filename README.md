@@ -1,5 +1,17 @@
 # Threat Hunting Lab: “IT Support” Recon Simulation
 
+### **Report Information**
+**Performed By** Justin Soflin  
+**Role:** Threat Hunter / Security Analyst  
+**Date Completed:** Nov. 29, 2025  
+**Environment Investigated:** Cyber Range at LOG(N)Pacific  
+**Host Investigated:** gab-intern-vm 
+**User Context:** g4bri3lintern 
+**Tools & Data Sources:** Microsoft Azure, Log Analytics workspaces, KQL (Kusto Query Language)
+**Scope:** Behavioral review, artifact analysis, persistence detection, and network egress validation  
+
+---
+
 ## Scenario
 
 What appeared to be a routine support request was actually system recon: probing, collecting information, and leaving persistence mechanisms behind. Then, right as the activity became suspicious, a conveniently placed “explanation” file appeared. This wasn’t support work — it was misdirection.
@@ -13,14 +25,17 @@ What appeared to be a routine support request was actually system recon: probing
 
 ## Executive Summary
 
-g4bri3lintern
-gab-intern-vm
+The investigation into device 'gab-intern-vm` exposed numerous suspicious activities, all under the guise of routine IT support. User accomplished this by using support-themed naming conventions and relying on legitimate tools that won't typically raise red flags. The session involved probing the system, collecting information, testing network access, and setting up ways to maintain access.
 
-What looked like routine IT support on the intern workstation gab-intern-vm was actually a series of suspicious activities. Instead of simply helping, the session involved probing the system, collecting information, testing network access, and setting up ways to maintain access.
+At each step, actions were structured and sequential: 
+   - Initial script execution
+   - Host and session checks
+   - Storage and privilege review
+   - Outbound connectivity testing
+   - Consolidation of files
+   - Staged “chat log” to justify the behavior
 
-At each step, actions were structured and sequential: initial script execution, host and session checks, storage and privilege review, outbound connectivity testing, and consolidation of files. Finally, a staged “chat log” was placed to create a false explanation for the behavior.
-
-The activity was deliberate and coordinated, not standard support. This report lays out the timeline, the artifacts left behind, and the key indicators that distinguish legitimate support from staged reconnaissance.
+Although no actual exfiltration took place, the activity was deliberate and coordinated, not standard support. This report lays out the timeline, the artifacts left behind, and the key indicators that distinguish legitimate support from staged reconnaissance.
 
 ---
 
@@ -64,6 +79,8 @@ DeviceFileEvents
 | project TimeGenerated, ActionType, DeviceName, FileName, FolderPath, InitiatingProcessCommandLine, InitiatingProcessFolderPath, SHA256
 | order by TimeGenerated desc
 ```
+
+<br>
 
 | |
 |---|
@@ -652,6 +669,115 @@ DeviceFileEvents
 
 **Flag Answer (Artifact File Name)**: SupportChat_log.lnk
 
-## MITRE ATT&CK MAPINGS
+---
 
-## Response
+## Recommended Response Actions
+
+### 1. Host Containment & Credential Safeguards
+- Isolate the affected host `gab-intern-vm` from the network.
+- Rotate credentials for the intern account and any accounts active on the host.
+- Review lateral movement attempts across nearby systems.
+
+### 2. Artifact & Process Review
+- Retrieve and analyze the following artifacts:
+  - `supporttool.ps1`
+  - `ReconArtifacts.zip`
+  - `SupportChat_log.lnk`
+  - Any remaining persistence artifacts (`Scheduled Tasks`, `Run` keys)
+
+- Confirm whether the ZIP contains sensitive data or staged reconnaissance output.
+
+### 3. Persistence Cleanup
+- Remove the scheduled task **SupportToolUpdater**.
+- Remove registry autorun value **RemoteAssistUpdater**.
+- Verify there are no additional hidden persistence mechanisms.
+
+### 4. Network & Egress Monitoring
+- Review outbound connections around:
+  - `www.msftconnecttest.com`
+  - `httpbin.org` (100.29.147.161)
+
+- Validate whether similar egress tests have been performed on other hosts.
+
+### 5. Enterprise-wide Threat Hunt
+Perform broader detections across the environment for:
+- Execution of PowerShell with `-ExecutionPolicy Bypass`
+- Use of `qwinsta`, `tasklist /v`, `whoami /groups` outside admin timelines
+- Creation of ZIP files in `C:\Users\Public\`
+- Scheduled task creation from user context
+- Autorun registry entries created by non-admin users
+
+### 6. Policy & Control Adjustments
+- Restrict execution from user Downloads directories.
+- Enforce PowerShell Constrained Language Mode for non-admin accounts.
+- Implement stricter egress controls and external destination allowlisting.
+- Enable tamper protection and script block logging.
+
+### 7. User Education & Process Review
+- Train users to escalate suspicious “IT support” interactions.
+- Review access policies for interns and low‑privilege users.
+
+### 8. Post-Incident Summary
+- Document the root cause: user-context script execution masked as IT support.
+- Identify opportunities to improve detection coverage (PowerShell logs, task creation auditing).
+- Apply lessons learned into future SOC playbooks.
+
+---
+
+## MITRE ATT&CK Mapings
+
+### Initial Access & Execution
+- **T1059.001 – Command and Scripting Interpreter: PowerShell**  
+  Execution of `supporttool.ps1` with `-ExecutionPolicy Bypass`.
+- **T1059 – Command and Scripting Interpreter**  
+  Repeated execution of commands (`qwinsta`, `tasklist`, `whoami`, etc.).
+
+### Defense Evasion
+- **T1562 – Impair Defenses**  
+  Creation of `DefenderTamperArtifact.lnk`, suggesting intent to mimic tampering or assess defensive posture.
+- **T1218 – Signed Binary Proxy Execution**  
+  Using `schtasks.exe`, `wmic`, and `cmd.exe` to execute or launch tasks.
+
+### Discovery (Reconnaissance)
+- **T1082 – System Information Discovery**  
+  Querying host info (`tasklist`, `cmd`, runtime enumeration).
+- **T1033 – Account Discovery**  
+  `whoami /groups`, privilege review.
+- **T1087 – Account Discovery**  
+  Session/user enumeration via `qwinsta`, `query session`, `quser`.
+- **T1016 – System Network Configuration Discovery**  
+  Use of `ipconfig`, outbound connectivity tests.
+- **T1046 – Network Service Scanning** *(soft alignment)*  
+  Testing external reachability via `msftconnecttest.com`.
+- **T1083 – File and Directory Discovery**  
+  Storage enumeration via `wmic logicaldisk`.
+- **T1119 – Automated Collection**  
+  Clipboard probing via `Get-Clipboard`.
+
+### Collection & Staging
+- **T1074 – Data Staged**  
+  Recon artifacts consolidated as `ReconArtifacts.zip` in `C:\Users\Public\`.
+
+### Command and Control / Egress
+- **T1041 – Exfiltration Over Command and Control Channel**  
+  Outbound HTTPS communication to `httpbin.org`.
+- **T1105 – Ingress Tool Transfer / Generic Network Communication**  
+  Network testing via PowerShell to external endpoints.
+
+### Persistence
+- **T1053.005 – Scheduled Task/Job: Scheduled Task**  
+  Creation of `SupportToolUpdater` to execute on logon.
+- **T1547.001 – Boot or Logon Autostart Execution: Registry Run Key**  
+  Registry persistence via `RemoteAssistUpdater`.
+
+### Defense Evasion / Impacted Analyst Deception
+- **T1036 – Masquerading**  
+  Support-themed naming (`supporttool.ps1`, `supportchat_log.lnk`).
+- **T1204 – User Execution / Social Engineering** *(light alignment)*  
+  Placement of misleading “support log” file to disguise activity.
+
+# Conclusion
+
+The activity observed on `gab-intern-vm` was not consistent with IT support but aligned with structured reconnaissance and light persistence staging. Although no confirmed exfiltration occurred, the operator demonstrated intent and capability through system enumeration, privilege checks, outbound connectivity testing, and creation of scheduled and autorun-based persistence mechanisms.
+
+Across all stages, the behavior showed planning, sequencing, and purposeful artifact creation rather than accidental or legitimate support operations. The findings confirm that the host was being probed for future access, not repaired.
