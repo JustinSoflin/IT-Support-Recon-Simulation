@@ -118,9 +118,6 @@ DeviceProcessEvents
 | where TimeGenerated between (T1 -5m .. T1 + 5m)
 | order by TimeGenerated desc
 ```
-<kbd>
-<img width="1294" alt="image" src="https://github.com/user-attachments/assets/8993ee49-ee47-435d-b560-89fff8755430" />
-</kbd>
 
 | |
 |---|
