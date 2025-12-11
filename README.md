@@ -13,6 +13,9 @@ What appeared to be a routine support request was actually system recon: probing
 
 ## Executive Summary
 
+g4bri3lintern
+gab-intern-vm
+
 What looked like routine IT support on the intern workstation gab-intern-vm was actually a series of suspicious activities. Instead of simply helping, the session involved probing the system, collecting information, testing network access, and setting up ways to maintain access.
 
 At each step, actions were structured and sequential: initial script execution, host and session checks, storage and privilege review, outbound connectivity testing, and consolidation of files. Finally, a staged “chat log” was placed to create a false explanation for the behavior.
@@ -452,10 +455,14 @@ DeviceNetworkEvents
 <br>
 
 **Findings**
-
+- User accessed the Microsoft connectivity check domain `www.msftconnecttest.com`
+- Aligns with attempts to validate outbound internet communication rather than providing legitimate IT support
 
 **Analysis**
-- The first contact with an external URL validates outbound connectivity; the files created afterward served as proof-of-access.
+- `msftconnecttest.com` is a legitimate domain used to verify internet connectivity
+- Outbound requests to this domain may not trigger alerts or appear suspicious in network logs
+- Executed from a user‑initiated PowerShell session
+- Enabled actor to identify which outbound ports, domains, and protocols are permitted by the network
 
 **Flag Answer (First Outbound Destination)**: www.msftconnecttest.com
 
@@ -485,10 +492,13 @@ DeviceFileEvents
 <br>
 
 **Findings**
-
+- User created a .zip file conveniently named `ReconArtifacts.zip`
 
 **Analysis**
-- Artifacts consolidated into a ZIP for potential exfiltration.
+- All previous reconnaissance is saved to a .zip file
+- `C:\Users\Public\` helps the actor conceal their own user profile
+- This folder path may appear normal in logs and not be heavily scrutinized
+- Allows the actor to prepare data for later exfiltration or move artifacts between accounts
 
 **Flag Answer (File Path)**: C:\Users\Public\ReconArtifacts.zip
 
@@ -497,7 +507,8 @@ DeviceFileEvents
 ### Flag 12 – Outbound Transfer Attempt (Simulated)
 
 **Objective** <br>
-Identify any network activity indicating an attempt to move staged data off the host.
+- Identify any network activity indicating an attempt to move staged data off the host
+- Succeeded or not, attempt is still proof of intent, and it reveals egress paths or block points
 
 Queries:
 ```kql
@@ -531,11 +542,16 @@ DeviceNetworkEvents
 <br>
 
 **Findings**
-
+- User successfully connected to external IP `100.29.147.161`, `httpbin.org`, with PowerShell
 
 **Analysis**
-- Outbound HTTPS to httpbin.org via PowerShell demonstrates simulated exfiltration attempt.
-
+- `httpbin.org` is a public service that echoes HTTP requests
+- Serves as an egress test by:
+   - Verifying that outbound HTTP(S) traffic is allowed from the host
+   - Confirming that firewalls, proxies, or egress filters do not block traffic
+-  Doesn’t trigger alerts because the domain is well-known and non-malicious
+-  Executing from PowerShell indicates deliberate operator behavior, not background system traffic
+  
 **Flag Answer (IP of last unusual outbound connection)**: 100.29.147.161
 
 ---
@@ -560,10 +576,12 @@ DeviceProcessEvents
 <br>
 
 **Findings**
--
-
+- User executed command `/Create /SC ONLOGON /` with their support-themed "tool"
+- Full command:
+   - "schtasks.exe" /Create /SC ONLOGON /TN SupportToolUpdater /TR "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "C:\Users\g4bri3lintern\Downloads\SupportTool.ps1"" /RL LIMITED /F
+     
 **Analysis**
-- Scheduled task ensures tooling runs on user logon.
+- Scheduled task ensures `SupportToolUpdater.ps1` runs on user logon
 
 ** Flag Answer (Task Name)**: SupportToolUpdater
 
@@ -590,10 +608,12 @@ DeviceRegistryEvents
 <br>
 
 **Findings**
--
+- The query returned no results, as noted in the scenario instructions
+- Answer was given as RemoteAssistUpdater
 
 **Analysis**
-- Fallback autorun entry increases persistence resilience.
+- Fallback autorun entry increases persistence resilience
+- Appears redundant along with the previously created scheduled task, but using both increases flexibility and ensures execution even if one mechanism fails
 
 **Flag Answer (Registry Value Name)**: RemoteAssistUpdater
 
@@ -622,10 +642,13 @@ DeviceFileEvents
 <br>
 
 **Findings**
--
+- User created a shortcut file named `SupportChat_log.lnk`
 
 **Analysis**
-- A user-facing file mimicking a helpdesk chat to justify suspicious activity.
+- A user-facing file mimicking a helpdesk chat to justify suspicious activity
+- File was manually opened via `Explorer.exe`
+- File naming convention implies a support troubleshooting log
+- File size increased slightly after modification to mimic the addition of routine notes or updates
 
 **Flag Answer (Artifact File Name)**: SupportChat_log.lnk
 
