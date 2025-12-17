@@ -1,13 +1,42 @@
 # Threat Hunting Lab: “IT Support” Recon Simulation
 
 ### **Report Information**
-**Analyst** Justin Soflin  
+**Analyst:** Justin Soflin  
 **Date Completed:** Nov. 29, 2025  <br>
 **Environment Investigated:** Cyber Range at LOG(N)Pacific  <br>
 **Host Investigated:** gab-intern-vm <br>
 **User Context:** g4bri3lintern <br>
 **Tools & Data Sources:** Microsoft Azure, Log Analytics workspaces, KQL (Kusto Query Language)<br>
 **Scope:** Behavioral review, artifact analysis, persistence detection, and network egress validation  <br>
+
+---
+
+## Table of Contents
+
+1. [Report Information](#report-information)
+2. [Scenario](#scenario)
+3. [Executive Summary](#executive-summary)
+4. [Timeline of Events](#timeline-of-events)
+5. [Initial Detection](#starting-point)
+6. [Flag Walkthrough](#flag-walkthrough)
+    - [Flag 1 – Initial Execution Detection](#flag-1--initial-execution-detection)
+    - [Flag 2 – Defense Disabling](#flag-2--defense-disabling)
+    - [Flag 3 – Quick Data Probe](#flag-3--quick-data-probe)
+    - [Flag 4 – Host Context Recon](#flag-4--host-context-recon)
+    - [Flag 5 – Storage Surface Mapping](#flag-5--storage-surface-mapping)
+    - [Flag 6 – Connectivity & Name Resolution Check](#flag-6--connectivity--name-resolution-check)
+    - [Flag 7 – Interactive Session Discovery](#flag-7--interactive-session-discovery)
+    - [Flag 8 – Runtime Application Inventory](#flag-8--runtime-application-inventory)
+    - [Flag 9 – Privilege Surface Check](#flag-9--privilege-surface-check)
+    - [Flag 10 – Proof-of-Access & Egress Validation](#flag-10--proof-of-access--egress-validation)
+    - [Flag 11 – Bundling--staging-artifacts](#flag-11--bundling--staging-artifacts)
+    - [Flag 12 – Outbound Transfer Attempt-simulated](#flag-12--outbound-transfer-attempt-simulated)
+    - [Flag 13 – Scheduled Re-Execution Persistence](#flag-13--scheduled-re-execution-persistence)
+    - [Flag 14 – Autorun Fallback Persistence](#flag-14--autorun-fallback-persistence)
+    - [Flag 15 – Planted Narrative--cover-artifact](#flag-15--planted-narrative--cover-artifact)
+7. [Recommended Response Actions](#recommended-response-actions)
+8. [MITRE ATT&CK Mappings](#mitre-attck-mappings)
+9. [Conclusion](#conclusion)
 
 ---
 
@@ -38,7 +67,7 @@ Although no actual exfiltration took place, the activity was deliberate and coor
 
 ---
 
-## 📅 Timeline of Events
+## Timeline of Events
 
 | **Flag** | **Timestamp** | **Stage** | **Event / Artifact** |
 |----------|---------------------|-----------|-----------------------|
