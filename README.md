@@ -1,8 +1,7 @@
 # Threat Hunting Lab: “IT Support” Recon Simulation
 
 ### **Report Information**
-**Performed By** Justin Soflin  
-**Role:** Threat Hunter / Security Analyst  <br>
+**Analyst** Justin Soflin  
 **Date Completed:** Nov. 29, 2025  <br>
 **Environment Investigated:** Cyber Range at LOG(N)Pacific  <br>
 **Host Investigated:** gab-intern-vm <br>
