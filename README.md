@@ -233,8 +233,11 @@ DeviceFileEvents
 - User executed PowerShell command with `Get-Clipboard`
 
 **Analysis**
-- Malicious actors probe clipboards hoping to find sensitive information, such as passwords. 
-- Extremely short-lived reconnaissance
+- Malicious actors probe clipboards hoping to find sensitive information, such as:
+   - Passwords
+   - Tokens
+   - VPN secrets
+   - Crypto wallet seeds  
 - Clipboard enumeration is uncommon in legitimate support activity
 - Additional commands, such as `try { … } catch { }`, are also present to suppress errors and discard outputs, reducing detection opportunities.
 
