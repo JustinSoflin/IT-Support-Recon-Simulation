@@ -35,7 +35,7 @@
     - [Flag 14 – Autorun Fallback Persistence](#flag-14--autorun-fallback-persistence)
     - [Flag 15 – Planted Narrative--cover-artifact](#flag-15--planted-narrative--cover-artifact)
 7. [Recommended Response Actions](#recommended-response-actions)
-8. [MITRE ATT&CK Mappings](#mitre-attck-mappings)
+8. [MITRE ATTACK Mappings](#mitre-attack-mappings)
 9. [Conclusion](#conclusion)
 
 ---
@@ -749,7 +749,7 @@ Perform broader detections across the environment for:
 
 ---
 
-## MITRE ATT&CK Mapings
+## MITRE ATTACK Mapings
 
 ### Initial Access & Execution
 - **T1059.001 – Command and Scripting Interpreter: PowerShell**  
