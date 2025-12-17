@@ -133,7 +133,10 @@ DeviceFileEvents
 ### Flag 1 – Initial Execution Detection
 
 **Objective** <br>
-Detect the earliest anomalous execution representing an entry point.
+- Detect the earliest anomalous execution representing an entry point.
+- Look for atypical script or interactive command activity that deviates from normal user behavior or baseline patterns.
+- Pinpointing the first unusual execution helps you anchor the timeline and follow the actor’s parent/child process chain.
+
 
 Query:
 
@@ -167,7 +170,10 @@ DeviceProcessEvents
 ### Flag 2 – Defense Disabling
 
 **Objective** <br>
-Identify simulated or staged security posture changes.
+- Identify simulated or staged security posture changes.
+- Search for artifact creation or short-lived process activity that contains tamper-related content or hints, without assuming an actual configuration change occurred.
+- A planted or staged tamper indicator is a signal of intent — treat it as intent, not proof of actual mitigation changes.
+
 
 Query:
 ```kql
@@ -201,7 +207,10 @@ DeviceFileEvents
 ### Flag 3 – Quick Data Probe
 
 **Objective** <br>
-Spot opportunistic checks for sensitive content.
+- Spot opportunistic checks for sensitive content.
+- Find short-lived actions that attempt to read transient data sources common on endpoints.
+- Attackers look for low-effort wins first; these quick probes often precede broader reconnaissance.
+
 
 Query:
 ```kql
@@ -236,7 +245,9 @@ DeviceFileEvents
 ### Flag 4 – Host Context Recon
 
 **Objective** <br>
-Find activity that gathers basic host and user context to inform follow-up actions.
+- Find activity that gathers basic host and user context to inform follow-up actions.
+- Telemetry that shows the actor collecting environment or account details without modifying them.
+- Context-gathering shapes attacker decisions — who, what, and where to target next.
 
 Query:
 ```kql
@@ -272,7 +283,9 @@ DeviceProcessEvents
 ### Flag 5 – Storage Surface Mapping
 
 **Objective** <br>
-Detect enumeration of local/network storage.
+- Detect enumeration of local/network storage.
+- Look for enumeration of filesystem or share surfaces and lightweight checks of available storage.
+- Mapping where data lives is a preparatory step for collection and staging.
 
 Query:
 ```kql
@@ -311,7 +324,10 @@ DeviceProcessEvents
 ### Flag 6 – Connectivity & Name Resolution Check
 
 **Objective** <br>
-Identify network reachability and DNS queries.
+- Identify network reachability and DNS queries.
+- Network or process events indicating DNS or interface queries and simple outward connectivity probes.
+- Confirming egress is a necessary precondition before any attempt to move data off-host.
+
 
 Query:
 ```kql
@@ -350,7 +366,9 @@ DeviceProcessEvents
 ### Flag 7 – Interactive Session Discovery
 
 **Objective** <br>
-Detect enumeration of active user sessions.
+- Detect enumeration of active user sessions.
+- Signals that enumerate current session state or logged-in sessions without initiating a takeover.
+- Knowing which sessions are active helps an actor decide whether to act immediately or wait.
 
 Query:
 ```kql
@@ -383,7 +401,9 @@ DeviceProcessEvents
 ### Flag 8 – Runtime Application Inventory
 
 **Objective** <br>
-Identify activity that enumerates running processes or services on the host.
+- Identify activity that enumerates running processes or services on the host.
+- Events that capture broad process/process-list snapshots or queries of running services.
+- A process inventory shows what’s present and what to avoid or target for collection.
 
 Query:
 ```kql
@@ -424,7 +444,9 @@ DeviceProcessEvents
 ### Flag 9 – Privilege Surface Check
 
 **Objective** <br>
-Identify attempts to enumerate the current user’s privilege level, group membership, and available security tokens.
+- Identify attempts to enumerate the current user’s privilege level, group membership, and available security tokens.
+- Telemetry that reflects queries of group membership, token properties, or privilege listings.
+- Privilege mapping informs whether the actor proceeds as a user or seeks elevation.
 
 Query:
 ```kql
@@ -461,7 +483,9 @@ DeviceProcessEvents
 ### Flag 10 – Proof-of-Access & Egress Validation
 
 **Objective** <br>
-Identify network activity that demonstrates both the ability to reach external destinations and the intent to validate outbound communication pathways.
+- Identify network activity that demonstrates both the ability to reach external destinations and the intent to validate outbound communication pathways.
+- Look for combined evidence of outbound network checks and artifacts created as proof the actor can view or collect host data.
+- This step demonstrates both access and the potential to move meaningful data off the host.
 
 Queries:
 ```kql
@@ -513,7 +537,9 @@ DeviceNetworkEvents
 ### Flag 11 – Bundling / Staging Artifacts
 
 **Objective** <br>
-Identify actions that consolidate reconnaissance outputs or collected artifacts into a single location or compressed package.
+- Identify actions that consolidate reconnaissance outputs or collected artifacts into a single location or compressed package.
+- File system events or operations that show grouping, consolidation, or packaging of gathered items.
+- Staging is the practical step that simplifies exfiltration and should be correlated back to prior recon.
 
 Query:
 ```kql
@@ -550,6 +576,7 @@ DeviceFileEvents
 
 **Objective** <br>
 - Identify any network activity indicating an attempt to move staged data off the host
+- Network events or process activity indicating outbound transfers or upload attempts, even if they fail.
 - Succeeded or not, attempt is still proof of intent, and it reveals egress paths or block points
 
 Queries:
@@ -601,7 +628,9 @@ DeviceNetworkEvents
 ### Flag 13 – Scheduled Re-Execution Persistence
 
 **Objective** <br>
-Identify mechanisms that ensure the attacker’s tooling will automatically run again after a reboot or user sign-in.
+- Identify mechanisms that ensure the attacker’s tooling will automatically run again after a reboot or user sign-in.
+- Process or scheduler-related events that create recurring or logon-triggered executions tied to the same actor pattern.
+- Re-execution mechanisms are the actor’s way of surviving beyond a single session — interrupting them reduces risk.
 
 Query:
 ```kql
@@ -632,7 +661,9 @@ DeviceProcessEvents
 ### Flag 14 – Autorun Fallback Persistence
 
 **Objective** <br>
-Identify lightweight persistence mechanisms created under the user context, specifically autorun entries in the registry or startup directory.
+- Identify lightweight persistence mechanisms created under the user context, specifically autorun entries in the registry or startup directory.
+- Registry or startup-area modifications that reference familiar execution patterns or repeat previously observed commands.
+- Redundant persistence increases resilience; find the fallback to prevent easy re-entry.
 
 Query:
 ```kql
@@ -664,7 +695,9 @@ DeviceRegistryEvents
 ### Flag 15 – Planted Narrative / Cover Artifact
 
 **Objective** <br>
-Identify any artifacts deliberately created to justify, disguise, or mislead investigators regarding the nature of the suspicious activity. 
+- Identify any artifacts deliberately created to justify, disguise, or mislead investigators regarding the nature of the suspicious activity.
+- Creation of explanatory files or user-facing artifacts near the time of suspicious operations; focus on timing and correlation rather than contents.
+- A planted explanation is a classic misdirection. The sequence and context reveal deception more than the text itself.
 
 Query:
 ```kql
