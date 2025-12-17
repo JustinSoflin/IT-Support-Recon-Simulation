@@ -44,7 +44,7 @@
 
 What appeared to be a routine support request was actually system recon: probing, collecting information, and leaving persistence mechanisms behind. Then, right as the activity became suspicious, a conveniently placed “explanation” file appeared. This wasn’t support work — it was misdirection.
 
-**INTEL**
+**Threat Intel**
   - Multiple machines were spawning processes from `Downloads` folders during _early October_.
   - Shared file traits: similar executables, naming patterns, and keywords _desk, help, support, tool_.
   - Intern-operated machines were affected.
